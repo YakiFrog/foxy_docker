@@ -23,10 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rotate_turtle = turtlesim_logic.rotate_turtle_node:main',
-            'move_to_target = turtlesim_logic.move_to_target_node:main',
-            'arc_drive = turtlesim_logic.arc_drive_node:main',
-            'open_loop_drive = turtlesim_logic.open_loop_drive_node:main'
+            'open_loop_drive = turtlesim_logic.open_loop_drive_node:main',
+            'closed_loop_drive = turtlesim_logic.closed_loop_drive_node:main'
         ],
     },
 )

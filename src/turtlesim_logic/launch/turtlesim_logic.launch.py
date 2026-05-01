@@ -14,29 +14,15 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='turtlesim_logic',
-            executable='rotate_turtle',
-            name='rotate_turtle_node',
-            parameters=[config],
-            output='screen'
-        ),
-        Node(
-            package='turtlesim_logic',
-            executable='move_to_target',
-            name='move_to_target_node',
-            parameters=[config],
-            output='screen'
-        ),
-        Node(
-            package='turtlesim_logic',
-            executable='arc_drive',
-            name='arc_drive_node',
-            parameters=[config],
-            output='screen'
-        ),
-        Node(
-            package='turtlesim_logic',
             executable='open_loop_drive',
             name='open_loop_drive_node',
+            parameters=[config],
+            output='screen'
+        ),
+        Node(
+            package='turtlesim_logic',
+            executable='closed_loop_drive',
+            name='closed_loop_drive_node',
             parameters=[config],
             output='screen'
         )

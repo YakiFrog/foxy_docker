@@ -1,38 +1,37 @@
-# Foxy Test Environment Aliases
-
-# export ROS_DOMAIN_ID=56 (docker-compose.yml 側で管理)
-export RCUTILS_COLORIZED_OUTPUT=1
-
-# Basic Aliases
+# .bashrc_foxy
 alias build='colcon build --symlink-install'
 alias src='source install/setup.bash'
-alias tt='source ~/.bashrc_foxy'
+alias foxy_up='docker compose up -d'
+alias foxy_shell='docker compose exec -it foxy_test bash'
 
-# Auto-source workspace if built
-if [ -f "/ros2_ws/install/setup.bash" ]; then
-    source "/ros2_ws/install/setup.bash"
-fi
+# Start turtlesim
+alias turtle_start='ros2 run turtlesim turtlesim_node'
 
-# Foxy Test Commands
-alias turtle_start='ros2 run turtlesim turtlesim_node &'
+# Run nodes (Deprecated: use launch_all)
 alias rotate_start='ros2 run turtlesim_logic rotate_turtle'
 alias move_start='ros2 run turtlesim_logic move_to_target'
+
+# Unified Launch
 alias launch_all='ros2 launch turtlesim_logic turtlesim_logic.launch.py'
 
 # Test Action Goals
-alias rotate_90='ros2 action send_goal /rotate_degrees bt_msgs/action/RotateDegrees "{target_degrees: 90.0}" --feedback'
-alias move_2_2='ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: 2.0, y: 2.0}" --feedback'
-alias arc_r2_90='ros2 action send_goal /arc_drive bt_msgs/action/ArcDrive "{radius: 2.0, angle_degrees: 90.0, linear_speed: 1.0}" --feedback'
-alias ol_rotate_90='ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: \"rotate\", target_value: 90.0, speed: 1.0}" --feedback'
-alias ol_move_2='ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: \"move\", target_value: 2.0, speed: 1.0}" --feedback'
+alias rotate_90='ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: \"rotate\", target_value: 90.0, speed: 1.0}" --feedback'
+alias move_2_2='ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: \"move_to\", x: 2.0, y: 2.0, speed: 1.0}" --feedback'
+alias arc_r2_90='ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: \"arc\", target_value: 90.0, speed: 1.0, radius: 2.0}" --feedback'
+alias ol_rotate_90='ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: \"rotate\", target_value: 90.0, speed: 1.0}" --feedback'
+alias ol_move_2='ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: \"move\", target_value: 2.0, speed: 1.0}" --feedback'
 
 # Automated Sequence Execution
-alias run_seq='bash /ros2_ws/scripts/test_sequence.sh'
-alias run_8='bash /ros2_ws/scripts/test_figure8.sh'
 alias run_ol_seq='bash /ros2_ws/scripts/test_ol_square.sh'
+alias run_cl_seq='bash /ros2_ws/scripts/test_cl_sequence.sh'
 alias run_ol_8='bash /ros2_ws/scripts/test_ol_figure8.sh'
+alias run_cl_8='bash /ros2_ws/scripts/test_cl_figure8.sh'
 alias record='bash /ros2_ws/scripts/record_rosbag.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
-echo "Available aliases: build, src, turtle_start, rotate_start, move_start, launch_all, rotate_90, move_2_2, arc_r2_90, ol_rotate_90, ol_move_2, run_seq, run_8, run_ol_seq, run_ol_8, record"
-echo "!!! After changing .action files, run 'build' to apply changes !!!"
+echo "Sequence Commands:"
+echo "  run_cl_seq : Run closed-loop square (Coordinates)"
+echo "  run_ol_seq : Run open-loop square (Time)"
+echo "  run_cl_8   : Run closed-loop figure-8 (P-control)"
+echo "  run_ol_8   : Run open-loop figure-8 (Time)"
+echo "!!! After changes, run 'build' and 'src' !!!"

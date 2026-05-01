@@ -1,9 +1,0 @@
-# Goal
-float32 target_degrees
-float32 speed
----
-# Result
-bool success
----
-# Feedback
-float32 current_degrees

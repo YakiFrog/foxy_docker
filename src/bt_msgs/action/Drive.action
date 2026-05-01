@@ -1,0 +1,15 @@
+# Drive.action - Unified Drive Interface
+# Goal
+string type           # "rotate", "move", "arc", or "move_to"
+float32 target_value  # degrees for rotate/arc, meters for move
+float32 speed         # angular_speed for rotate, linear_speed for move/arc/move_to
+float32 radius        # only for "arc"
+float32 x             # only for "move_to"
+float32 y             # only for "move_to"
+---
+# Result
+bool success
+---
+# Feedback
+float32 progress
+float32 elapsed_time
