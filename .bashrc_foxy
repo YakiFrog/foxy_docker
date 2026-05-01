@@ -6,6 +6,7 @@ export RCUTILS_COLORIZED_OUTPUT=1
 # Basic Aliases
 alias build='colcon build --symlink-install'
 alias src='source install/setup.bash'
+alias tt='source ~/.bashrc_foxy'
 
 # Auto-source workspace if built
 if [ -f "/ros2_ws/install/setup.bash" ]; then
@@ -16,10 +17,12 @@ fi
 alias turtle_start='ros2 run turtlesim turtlesim_node &'
 alias rotate_start='ros2 run turtlesim_logic rotate_turtle'
 alias move_start='ros2 run turtlesim_logic move_to_target'
+alias launch_all='ros2 launch turtlesim_logic turtlesim_logic.launch.py'
 
 # Test Action Goals
 alias rotate_90='ros2 action send_goal /rotate_degrees bt_msgs/action/RotateDegrees "{target_degrees: 90.0}" --feedback'
 alias move_2_2='ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: 2.0, y: 2.0}" --feedback'
+alias run_seq='bash /ros2_ws/scripts/test_sequence.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
-echo "Available aliases: build, src, turtle_start, rotate_start, move_start, rotate_90, move_2_2"
+echo "Available aliases: build, src, turtle_start, rotate_start, move_start, rotate_90, move_2_2, run_seq"
