@@ -1,8 +1,9 @@
 # .bashrc_foxy
 alias build='colcon build --symlink-install'
 alias src='source install/setup.bash'
-alias foxy_up='docker compose up -d'
-alias foxy_shell='docker compose exec -it foxy_test bash'
+alias tt='source ~/.bashrc'
+# alias foxy_up='docker compose up -d'
+# alias foxy_shell='docker compose exec -it foxy_test bash'
 
 # Start turtlesim
 alias turtle_start='ros2 run turtlesim turtlesim_node'

@@ -3,6 +3,9 @@
 
 echo "=== Full Closed Loop Figure-8 Start (Following YAML Defaults) ==="
 
+echo "Starting Straight 1m"
+ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 1.0, speed: 1.0, p_control_mode: 0}"
+
 echo "--- Starting Left Loop ---"
 for i in {1..3}
 do
@@ -13,8 +16,8 @@ do
     ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: 'arc', target_value: 90.0, speed: 1.0, radius: 1.0, p_control_mode: 0}"
 done
 
-echo "Connecting Straight 2m"
-ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 2.0, speed: 1.0, p_control_mode: 0}"
+echo "Connecting Straight 3m"
+ros2 action send_goal /closed_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 3.0, speed: 1.0, p_control_mode: 0}"
 
 echo "--- Starting Right Loop ---"
 for i in {1..3}
