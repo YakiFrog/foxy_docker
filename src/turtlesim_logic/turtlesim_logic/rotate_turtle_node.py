@@ -75,8 +75,7 @@ class RotateTurtleNode(Node):
             
             # Feedback
             goal_handle.publish_feedback(RotateDegrees.Feedback(
-                current_yaw=math.degrees(self.current_yaw),
-                status=f"Rotating... Err: {math.degrees(yaw_error):.1f}"
+                current_degrees=math.degrees(self.current_yaw)
             ))
             
             if abs(yaw_error) < tolerance:

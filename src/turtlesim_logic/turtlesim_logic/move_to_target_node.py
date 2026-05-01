@@ -102,8 +102,7 @@ class MoveToTargetNode(Node):
             
             # Feedback
             goal_handle.publish_feedback(MoveToTarget.Feedback(
-                distance=dist,
-                status=f"Dist: {dist:.2f}, YawErr: {math.degrees(yaw_error):.1f}"
+                distance_to_target=dist
             ))
             
             # Check if reached
