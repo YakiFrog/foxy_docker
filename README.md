@@ -20,6 +20,13 @@ build                        # (または colcon build --symlink-install)
 src                          # (または source install/setup.bash)
 ```
 
+### トラブルシューティング（クリーンビルド）
+アクションの定義変更が反映されない、あるいは `undefined symbol` 等のエラーが出る場合は、一度ビルド成果物を削除してやり直してください。
+```bash
+# ビルド成果物の全削除と再ビルド
+rm -rf build/ install/ log/ && build && src
+```
+
 ---
 
 ## 1. ノード構成
