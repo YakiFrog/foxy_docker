@@ -33,6 +33,7 @@ class RotateTurtleNode(Node):
         self.declare_parameter('min_angular_speed', 0.2)
         self.declare_parameter('kp_angular', 2.0)
         self.declare_parameter('tolerance', 0.02)
+        self.declare_parameter('use_odometry', True)
         
         self._action_server = ActionServer(
             self, RotateDegrees, 'rotate_degrees',
@@ -63,8 +64,32 @@ class RotateTurtleNode(Node):
         
         kp_angular = self.get_parameter('kp_angular').value
         tolerance = self.get_parameter('tolerance').value
+        use_odom = self.get_parameter('use_odometry').value
+
+        # --- オープンループモード (オドメトリなし) ---
+        if not use_odom:
+            self.get_logger().info('OPEN-LOOP MODE: Rotating by time')
+            duration = abs(math.radians(target_deg) / max_angular_speed)
+            msg = Twist()
+            msg.angular.z = float(max_angular_speed if target_deg > 0 else -max_angular_speed)
+            start_time = time.time()
+            while (time.time() - start_time) < duration:
+                if goal_handle.is_cancel_requested:
+                    self.cmd_vel_pub.publish(Twist())
+                    goal_handle.canceled()
+                    return RotateDegrees.Result(success=False)
+                self.cmd_vel_pub.publish(msg)
+                time.sleep(0.01)
+            self.cmd_vel_pub.publish(Twist())
+            goal_handle.succeed()
+            return RotateDegrees.Result(success=True)
+
+        # --- クローズドループモード (オドメトリあり) ---
+        self.get_logger().info('CLOSED-LOOP MODE: Rotating with sensor feedback')
+        target_offset_rad = math.radians(target_deg)
+        target_yaw = self.normalize_angle(self.current_yaw + target_offset_rad)
         
-        rate = self.create_rate(10)
+        rate = self.create_rate(100)
         while rclpy.ok():
             # Refresh parameters
             max_angular_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_angular_speed').value

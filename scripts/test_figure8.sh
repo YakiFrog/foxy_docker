@@ -1,48 +1,39 @@
 #!/bin/bash
-# 指定された座標シーケンスで8の字を描くスクリプト
+# test_figure8.sh - FULL Closed Loop Smooth Figure-8 (Odometry ON)
 
-source /ros2_ws/install/setup.bash
+echo "=== Full Closed Loop Figure-8 Start ==="
+echo "Note: Make sure launch_all is running and use_odometry: true is set in YAML."
 
-# パラメータ設定 (中心 5.5, 5.5)
-CENTER=5.5
-OFFSET=1.5
+# 1. 最初の直進 (座標 5.5, 5.5 からスタートと仮定して、相対的に進む)
+# 実際には現在の Turtlesim の座標を確認して送るのがベストですが、
+# ここでは「指定した座標へ正確に向かう」MoveToTarget の特性を活かします。
 
-# 各目標ポイントの計算
-P1_X=$(python3 -c "print($CENTER + $OFFSET)"); P1_Y=$CENTER
-P2_X=$(python3 -c "print($CENTER + $OFFSET)"); P2_Y=$(python3 -c "print($CENTER + $OFFSET)")
-P3_X=$CENTER; P3_Y=$(python3 -c "print($CENTER + $OFFSET)")
-P4_X=$CENTER; P4_Y=$CENTER
-P5_X=$CENTER; P5_Y=$(python3 -c "print($CENTER - $OFFSET)")
-P6_X=$(python3 -c "print($CENTER - $OFFSET)"); P6_Y=$(python3 -c "print($CENTER - $OFFSET)")
-P7_X=$(python3 -c "print($CENTER - $OFFSET)"); P7_Y=$CENTER
-P8_X=$CENTER; P8_Y=$CENTER
+echo "--- Starting Left Loop ---"
+for i in {1..3}
+do
+    echo "[Left $i/3] Step 1: Moving Straight (CL)"
+    # ここでは便宜上、現在の場所から正確に 1m 進む動作を期待
+    # 本来は現在の座標 + 向きから計算が必要ですが、一旦 open_loop_drive の CLモードを使用します
+    ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: 'move', target_value: 1.0, speed: 1.0}"
+    
+    echo "[Left $i/3] Step 2: Left Arc (CL + P-control)"
+    ros2 action send_goal /arc_drive bt_msgs/action/ArcDrive "{radius: 1.0, angle_degrees: 90.0, linear_speed: 1.0}"
+done
 
-echo "=== Custom Figure-8 Sequence Start ==="
+echo "Connecting Straight 2m (CL)"
+ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: 'move', target_value: 2.0, speed: 1.0}"
 
-# --- 第1ループ (右上) ---
-echo "[1/8] Move to ($P1_X, $P1_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P1_X, y: $P1_Y}"
+echo "--- Starting Right Loop ---"
+for i in {1..3}
+do
+    echo "[Right $i/3] Step 1: Moving Straight (CL)"
+    ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: 'move', target_value: 1.0, speed: 1.0}"
+    
+    echo "[Right $i/3] Step 2: Right Arc (CL + P-control)"
+    ros2 action send_goal /arc_drive bt_msgs/action/ArcDrive "{radius: 1.0, angle_degrees: -90.0, linear_speed: 1.0}"
+done
 
-echo "[2/8] Move to ($P2_X, $P2_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P2_X, y: $P2_Y}"
+echo "Final Straight 2m (CL)"
+ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopDrive "{type: 'move', target_value: 2.0, speed: 1.0}"
 
-echo "[3/8] Move to ($P3_X, $P3_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P3_X, y: $P3_Y}"
-
-echo "[4/8] Back to Center ($P4_X, $P4_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P4_X, y: $P4_Y}"
-
-# --- 第2ループ (左下) ---
-echo "[5/8] Move to ($P5_X, $P5_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P5_X, y: $P5_Y}"
-
-echo "[6/8] Move to ($P6_X, $P6_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P6_X, y: $P6_Y}"
-
-echo "[7/8] Move to ($P7_X, $P7_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P7_X, y: $P7_Y}"
-
-echo "[8/8] Back to Center ($P8_X, $P8_Y)"
-ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: $P8_X, y: $P8_Y}"
-
-echo "=== Custom Figure-8 Complete! ==="
+echo "=== Full Closed Loop Figure-8 Complete! ==="

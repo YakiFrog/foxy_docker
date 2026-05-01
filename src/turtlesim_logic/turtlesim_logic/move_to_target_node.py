@@ -36,6 +36,7 @@ class MoveToTargetNode(Node):
         self.declare_parameter('kp_angular', 4.0)
         self.declare_parameter('dist_tolerance', 0.1)
         self.declare_parameter('yaw_tolerance', 0.05)
+        self.declare_parameter('use_odometry', True)
         
         self.create_subscription(
             Pose, pose_topic, self.pose_callback, 10,
@@ -80,7 +81,30 @@ class MoveToTargetNode(Node):
         kp_angular = self.get_parameter('kp_angular').value
         dist_tolerance = self.get_parameter('dist_tolerance').value
         yaw_tolerance = self.get_parameter('yaw_tolerance').value
+        use_odom = self.get_parameter('use_odometry').value
 
+        # --- オープンループモード (オドメトリなし) ---
+        if not use_odom:
+            self.get_logger().info('OPEN-LOOP MODE: Moving straight by time')
+            duration = abs(math.sqrt(target_x**2 + target_y**2) / max_linear_speed) # 簡易的な距離計算
+            # ※ 本来は現在地からの距離が必要ですが、OL版は「指定距離進む」動作とします
+            # ここでは単純に max_linear_speed で一定時間進む実装にします
+            msg = Twist()
+            msg.linear.x = float(max_linear_speed)
+            start_time = time.time()
+            while (time.time() - start_time) < (target_x / max_linear_speed): # 簡易
+                if goal_handle.is_cancel_requested:
+                    self.cmd_vel_pub.publish(Twist())
+                    goal_handle.canceled()
+                    return MoveToTarget.Result(success=False)
+                self.cmd_vel_pub.publish(msg)
+                time.sleep(0.01)
+            self.cmd_vel_pub.publish(Twist())
+            goal_handle.succeed()
+            return MoveToTarget.Result(success=True)
+
+        # --- クローズドループモード (オドメトリあり) ---
+        self.get_logger().info('CLOSED-LOOP MODE: Moving with sensor feedback')
         while rclpy.ok():
             # Refresh parameters in loop for real-time tuning
             max_linear_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_linear_speed').value

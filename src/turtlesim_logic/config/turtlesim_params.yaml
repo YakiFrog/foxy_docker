@@ -13,6 +13,7 @@ move_to_target_node:
     kp_angular: 4.0
     dist_tolerance: 0.1
     yaw_tolerance: 0.05
+    use_odometry: true
 
 rotate_turtle_node:
   ros__parameters:
@@ -25,6 +26,7 @@ rotate_turtle_node:
     min_angular_speed: 0.2
     kp_angular: 2.0
     tolerance: 0.02
+    use_odometry: true
 
 arc_drive_node:
   ros__parameters:
@@ -34,6 +36,8 @@ arc_drive_node:
 
     # 制御パラメータ
     linear_speed: 1.0
+    kp_arc: 2.0
+    use_odometry: true
 
 open_loop_drive_node:
   ros__parameters:
@@ -43,3 +47,4 @@ open_loop_drive_node:
     # 制御パラメータ
     linear_speed: 1.0
     angular_speed: 1.0
+    use_odometry: true

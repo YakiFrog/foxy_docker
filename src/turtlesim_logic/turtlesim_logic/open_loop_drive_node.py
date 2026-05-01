@@ -7,6 +7,7 @@ import math
 import time
 
 from geometry_msgs.msg import Twist
+from turtlesim.msg import Pose
 from bt_msgs.action import OpenLoopDrive
 
 class OpenLoopDriveNode(Node):
@@ -15,13 +16,20 @@ class OpenLoopDriveNode(Node):
         
         # パラメータ設定
         self.declare_parameter('cmd_vel_topic', '/turtle1/cmd_vel')
+        self.declare_parameter('pose_topic', '/turtle1/pose')
         self.declare_parameter('linear_speed', 1.0)
         self.declare_parameter('angular_speed', 1.0)
+        self.declare_parameter('use_odometry', True)
+        
         self.cmd_vel_topic = self.get_parameter('cmd_vel_topic').value
+        self.pose_topic = self.get_parameter('pose_topic').value
+
+        self.current_pose = None
+        self.create_subscription(Pose, self.pose_topic, self.pose_callback, 10)
 
         self.callback_group = ReentrantCallbackGroup()
         
-        # パブリッシャ (サブスクライバは不要！)
+        # パブリッシャ
         self.publisher_ = self.create_publisher(Twist, self.cmd_vel_topic, 10)
         
         self._action_server = ActionServer(
@@ -34,110 +42,121 @@ class OpenLoopDriveNode(Node):
             cancel_callback=self.cancel_callback
         )
         
-        self.get_logger().info('OpenLoopDrive Action Server (Odometry-Free) started')
+        self.get_logger().info('OpenLoopDrive Node (Hybrid OL/CL) started')
+
+    def pose_callback(self, msg):
+        self.current_pose = msg
 
     def goal_callback(self, goal_request):
-        self.get_logger().info(f'Received OpenLoop goal: type={goal_request.type}, value={goal_request.target_value}')
         return GoalResponse.ACCEPT
 
     def cancel_callback(self, goal_handle):
-        self.get_logger().info('Received cancel request')
         return CancelResponse.ACCEPT
 
     async def execute_callback(self, goal_handle):
         drive_type = goal_handle.request.type
         target_value = goal_handle.request.target_value
         speed = abs(goal_handle.request.speed)
-        
-        # 時間の計算 (オープンループ制御の核心)
-        if drive_type == "rotate":
-            # 目標速度の決定 (Goalで0が指定された場合は YAML パラメータを使用)
-            if speed <= 0:
-                speed = abs(self.get_parameter('angular_speed').value)
-                self.get_logger().info(f'Using default angular_speed: {speed}')
-            
-            # 走行時間(秒) = 回転角度(rad) / 角速度(rad/s)
-            # math.radians() で度(deg)からラジアン(rad)に変換
-            duration = abs(math.radians(target_value) / speed)
-            
-            msg = Twist()
-            # 目標角度(target_value)の符号で、左回転(+)か右回転(-)かを判断
-            msg.angular.z = float(speed if target_value > 0 else -speed)
-            self.get_logger().info(f'Rotating {target_value} degrees at {speed} rad/s (Duration: {duration:.2f}s)')
-        
-        elif drive_type == "move":
-            # 目標速度の決定 (Goalで0が指定された場合は YAML パラメータを使用)
-            if speed <= 0:
-                speed = abs(self.get_parameter('linear_speed').value)
-                self.get_logger().info(f'Using default linear_speed: {speed}')
-            
-            # 走行時間(秒) = 移動距離(m) / 速度(m/s)
-            duration = abs(target_value / speed)
-            
-            msg = Twist()
-            # 目標距離(target_value)の符号で、前進(+)か後退(-)かを判断
-            msg.linear.x = float(speed if target_value > 0 else -speed)
-            self.get_logger().info(f'Moving {target_value} meters at {speed} m/s (Duration: {duration:.2f}s)')
-        
-        elif drive_type == "arc":
-            # 目標速度の決定
-            if speed <= 0:
-                speed = abs(self.get_parameter('linear_speed').value)
-            
-            radius = abs(goal_handle.request.radius)
-            if radius <= 0:
-                self.get_logger().error('Radius must be positive for arc drive')
-                goal_handle.abort()
-                return OpenLoopDrive.Result(success=False)
-            
-            # 走行時間(秒) = 弧の長さ(m) / 速度(m/s)
-            # 弧の長さ = 半径 * 中心角(rad)
-            target_angle_rad = abs(math.radians(target_value))
-            duration = (radius * target_angle_rad) / speed
-            
-            # 角速度 w = v / R
-            angular_speed = speed / radius
-            
-            msg = Twist()
-            msg.linear.x = float(speed)
-            # 目標角度の符号で、左旋回か右旋回かを決定
-            msg.angular.z = float(angular_speed if target_value > 0 else -angular_speed)
-            self.get_logger().info(f'Arc driving: Radius {radius}m, Angle {target_value}deg (Duration: {duration:.2f}s)')
-        
-        else:
-            self.get_logger().error(f'Unknown drive type: {drive_type}')
-            goal_handle.abort()
-            return OpenLoopDrive.Result(success=False)
-
-        # 制御開始時刻を記録
-        start_time = self.get_clock().now()
-        feedback_msg = OpenLoopDrive.Feedback()
-        
-        rate = self.create_rate(100) # 100Hz (0.01秒に1回コマンドを送信)
+        use_odom = self.get_parameter('use_odometry').value
         
         try:
-            # 現在時刻と開始時刻の差(経過時間)が、計算した duration に達するまでループ
-            while (self.get_clock().now() - start_time).nanoseconds / 1e9 < duration:
-                if goal_handle.is_cancel_requested:
-                    goal_handle.canceled()
-                    self.stop_turtle()
-                    return OpenLoopDrive.Result(success=False)
+            # --- オープンループ（時間制御）モード ---
+            if not use_odom:
+                self.get_logger().info(f'OPEN-LOOP MODE: Driving {drive_type} by time')
                 
-                # フィードバック更新
-                feedback_msg.elapsed_time = (self.get_clock().now() - start_time).nanoseconds / 1e9
-                goal_handle.publish_feedback(feedback_msg)
+                # パラメータ/目標値に基づく速度と時間の計算
+                if drive_type == "rotate":
+                    if speed <= 0: speed = abs(self.get_parameter('angular_speed').value)
+                    duration = abs(math.radians(target_value) / speed)
+                    msg = Twist()
+                    msg.angular.z = float(speed if target_value > 0 else -speed)
+                elif drive_type == "move":
+                    if speed <= 0: speed = abs(self.get_parameter('linear_speed').value)
+                    duration = abs(target_value / speed)
+                    msg = Twist()
+                    msg.linear.x = float(speed if target_value > 0 else -speed)
+                elif drive_type == "arc":
+                    if speed <= 0: speed = abs(self.get_parameter('linear_speed').value)
+                    radius = abs(goal_handle.request.radius)
+                    duration = abs(math.radians(target_value) * radius / speed)
+                    msg = Twist()
+                    msg.linear.x = float(speed)
+                    msg.angular.z = float((speed/radius) if target_value > 0 else -(speed/radius))
+
+                start_time = self.get_clock().now()
+                rate = self.create_rate(100)
+                while (self.get_clock().now() - start_time).nanoseconds / 1e9 < duration:
+                    if goal_handle.is_cancel_requested:
+                        self.stop_turtle()
+                        goal_handle.canceled()
+                        return OpenLoopDrive.Result(success=False)
+                    self.publisher_.publish(msg)
+                    rate.sleep()
+
+            # --- クローズドループ（オドメトリ利用）モード ---
+            else:
+                self.get_logger().info(f'CLOSED-LOOP MODE: Driving {drive_type} with sensor feedback')
+                while self.current_pose is None:
+                    self.get_logger().info('Waiting for pose...')
+                    time.sleep(0.1)
+
+                start_pose = self.current_pose
+                accumulated_dist = 0.0
+                accumulated_angle = 0.0
+                last_x, last_y = start_pose.x, start_pose.y
+                last_theta = start_pose.theta
                 
-                # 指令送信
-                self.publisher_.publish(msg)
-                rate.sleep()
-                
+                msg = Twist()
+                if drive_type == "rotate":
+                    if speed <= 0: speed = abs(self.get_parameter('angular_speed').value)
+                    msg.angular.z = float(speed if target_value > 0 else -speed)
+                    target_limit = abs(math.radians(target_value))
+                elif drive_type == "move":
+                    if speed <= 0: speed = abs(self.get_parameter('linear_speed').value)
+                    msg.linear.x = float(speed if target_value > 0 else -speed)
+                    target_limit = abs(target_value)
+                elif drive_type == "arc":
+                    if speed <= 0: speed = abs(self.get_parameter('linear_speed').value)
+                    radius = abs(goal_handle.request.radius)
+                    msg.linear.x = float(speed)
+                    msg.angular.z = float((speed/radius) if target_value > 0 else -(speed/radius))
+                    target_limit = abs(math.radians(target_value))
+
+                rate = self.create_rate(100)
+                while rclpy.ok():
+                    if goal_handle.is_cancel_requested:
+                        self.stop_turtle()
+                        goal_handle.canceled()
+                        return OpenLoopDrive.Result(success=False)
+
+                    # 進捗の更新
+                    if drive_type == "move":
+                        dx = self.current_pose.x - last_x
+                        dy = self.current_pose.y - last_y
+                        accumulated_dist += math.sqrt(dx**2 + dy**2)
+                        last_x, last_y = self.current_pose.x, self.current_pose.y
+                        current_progress = accumulated_dist
+                    else:
+                        diff = self.current_pose.theta - last_theta
+                        if diff > math.pi: diff -= 2*math.pi
+                        if diff < -math.pi: diff += 2*math.pi
+                        accumulated_angle += diff
+                        last_theta = self.current_pose.theta
+                        current_progress = abs(accumulated_angle)
+
+                    if current_progress >= target_limit:
+                        break
+
+                    self.publisher_.publish(msg)
+                    rate.sleep()
+
+            # 共通の終了処理
             self.stop_turtle()
             goal_handle.succeed()
-            self.get_logger().info('Open loop drive completed')
             return OpenLoopDrive.Result(success=True)
-            
+
         except Exception as e:
-            self.get_logger().error(f'Error: {str(e)}')
+            self.get_logger().error(f'Error in execute_callback: {str(e)}')
             self.stop_turtle()
             goal_handle.abort()
             return OpenLoopDrive.Result(success=False)
