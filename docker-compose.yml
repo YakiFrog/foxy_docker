@@ -13,6 +13,7 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - .:/ros2_ws
+      - ./.bashrc_foxy:/root/.bashrc_foxy
     stdin_open: true
     tty: true
     privileged: true
