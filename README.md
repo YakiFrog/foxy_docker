@@ -1,71 +1,59 @@
 # Foxy Test Environment (ROS 2 Foxy / Turtlesim)
 
-このリポジトリは、ROS 2 Jazzy で開発された移動ロジックを ROS 2 Foxy 環境へ移植し、動作検証を行うためのテスト環境です。Docker を使用して、安定した通信と GUI（Turtlesim）の表示を実現しています。
+このリポジトリは、ROS 2 Jazzy で開発された移動ロジックを ROS 2 Foxy 環境へ移植し、動作検証を行うためのテスト環境です。
 
 ## 1. 準備 (Requirements)
 
 - Docker / Docker Compose
 - X11 Server (Ubuntu 等の GUI 環境、または Windows/macOS での X サーバー設定)
-- `foxy_up` / `foxy_shell` エイリアスの設定（ホスト側の `~/.bashrc` 推奨）
 
 ## 2. 環境の起動
 
-ホスト側で以下のコマンドを実行します。
+ホスト側の `~/.bashrc` に設定されたエイリアスを使用します。
 
 ```bash
-# コンテナのビルドと起動
-docker compose up -d --build
-
-# コンテナ内に入る
-docker exec -it foxy_test bash
+# ビルド・起動・コンテナへのログインを一括実行
+foxy_up
 ```
+
+※ 初回実行時や `Dockerfile` を変更した後は自動的にビルドが走ります。
 
 ## 3. 開発ワークフロー (Inside Container)
 
-コンテナ内では便利なエイリアスが設定されています（`.bashrc_foxy`）。
+コンテナ内では以下のエイリアスを使用して効率的に開発を行えます。
 
-### 初回・変更時のビルド
-```bash
-build  # colcon build --symlink-install
-```
+### ビルドと反映
+- `build`: ワークスペースのビルド (`colcon build`)
+- `src`: ビルド後の環境反映 (`source install/setup.bash`)
 
 ### サーバーの起動
-1.  **ターミナル1**: カメの表示
-    ```bash
-    turtle_start
-    ```
-2.  **ターミナル2**: アクションサーバー（移動・回転）の起動
-    ```bash
-    launch_all
-    ```
+1.  **ターミナル1**: `turtle_start` (Turtlesim GUI 起動)
+2.  **ターミナル2**: `launch_all` (移動・回転用アクションサーバー起動)
 
-### テストの実行
-- **正方形走行**: `run_seq`
-- **8の字走行**: `run_8`
-- **rosbag 記録**: `record` (別ターミナルで実行)
-- **特定座標への移動テスト**: `move_2_2`
+### テスト実行・記録
+- `run_seq`: 正方形走行テスト
+- `run_8`: 8の字走行テスト
+- `record`: rosbag 記録 (cmd_vel, pose, tf を記録)
+- `move_2_2`: 特定座標 (2, 2) への移動テスト
 
-## 4. パラメータの調整
+## 4. 設定のカスタマイズ
 
-制御ゲインやトピック名は以下の YAML ファイルで管理されています。
-ホスト側から編集可能で、変更後は `build` を行うことで反映されます。
+### ROS_DOMAIN_ID
+`docker-compose.yml` の `ROS_DOMAIN_ID` を書き換えることで通信グループを変更できます。
+(現在は `.bashrc_foxy` 内の設定をコメントアウトし、compose 側が優先されるようになっています)
 
-- パス: `src/turtlesim_logic/config/turtlesim_params.yaml`
+### 制御パラメータ
+`src/turtlesim_logic/config/turtlesim_params.yaml` を書き換えて `build` することで、ゲインや速度制限を調整できます。
 
-### 主要なパラメータ
-- `kp_linear` / `kp_angular`: 比例ゲイン
-- `max_linear_speed` / `max_angular_speed`: 最高速度制限
-- `min_linear_speed` / `min_angular_speed`: 最小速度（スタック防止）
-- `pose_topic` / `cmd_vel_topic`: 使用するトピック名
+## 5. 通信設定 (DDS)
 
-## 5. 通信の安定化について
+本環境では、異なる ROS バージョン間や Docker 越しの通信を安定させるため、以下の構成を採用しています。
 
-Docker 越しの通信（特に `network_mode: host` 時）で発生する `Deserialization failed` エラーを回避するため、以下の設定を強制しています。
+- **RMW**: `rmw_fastrtps_cpp` (Fast-DDS)
+- **共有メモリ禁止**: `fastdds_noshm.xml` を適用。
+  - 同一ホスト内での ROS バージョン違いによる `Deserialization failed` や `bad_alloc` などのクラッシュを防ぎます。
 
-- **Fast-DDS 共有メモリ無効化**: `fastdds_noshm.xml` を使用。
-- **Domain ID**: `57` (Jazzy 環境との混信防止)。
-
-## 6. 実機への移植
-
-Ubuntu 20.04 + ROS 2 Foxy の実機に移行する場合は、`scripts/` 内の絶対パス（`/ros2_ws/`）を実際のワークスペースのパスに置換してください。
-コード自体は標準的な ROS 2 Python で書かれているため、そのまま動作します。
+## 6. ファイル構成
+- `Dockerfile`: Foxy ベースのビルド定義
+- `.bashrc_foxy`: コンテナ内の環境変数・エイリアス定義 (ホストから編集可能)
+- `scripts/`: テスト用自動実行スクリプト群
