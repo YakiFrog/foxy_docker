@@ -29,7 +29,10 @@ alias ol_move_2='ros2 action send_goal /open_loop_drive bt_msgs/action/OpenLoopD
 # Automated Sequence Execution
 alias run_seq='bash /ros2_ws/scripts/test_sequence.sh'
 alias run_8='bash /ros2_ws/scripts/test_figure8.sh'
+alias run_ol_seq='bash /ros2_ws/scripts/test_ol_square.sh'
+alias run_ol_8='bash /ros2_ws/scripts/test_ol_figure8.sh'
 alias record='bash /ros2_ws/scripts/record_rosbag.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
-echo "Available aliases: build, src, turtle_start, rotate_start, move_start, launch_all, rotate_90, move_2_2, arc_r2_90, ol_rotate_90, ol_move_2, run_seq, run_8, record"
+echo "Available aliases: build, src, turtle_start, rotate_start, move_start, launch_all, rotate_90, move_2_2, arc_r2_90, ol_rotate_90, ol_move_2, run_seq, run_8, run_ol_seq, run_ol_8, record"
+echo "!!! After changing .action files, run 'build' to apply changes !!!"

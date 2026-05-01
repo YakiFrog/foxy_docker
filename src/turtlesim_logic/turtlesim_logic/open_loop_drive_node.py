@@ -79,6 +79,31 @@ class OpenLoopDriveNode(Node):
             msg.linear.x = float(speed if target_value > 0 else -speed)
             self.get_logger().info(f'Moving {target_value} meters at {speed} m/s (Duration: {duration:.2f}s)')
         
+        elif drive_type == "arc":
+            # 目標速度の決定
+            if speed <= 0:
+                speed = abs(self.get_parameter('linear_speed').value)
+            
+            radius = abs(goal_handle.request.radius)
+            if radius <= 0:
+                self.get_logger().error('Radius must be positive for arc drive')
+                goal_handle.abort()
+                return OpenLoopDrive.Result(success=False)
+            
+            # 走行時間(秒) = 弧の長さ(m) / 速度(m/s)
+            # 弧の長さ = 半径 * 中心角(rad)
+            target_angle_rad = abs(math.radians(target_value))
+            duration = (radius * target_angle_rad) / speed
+            
+            # 角速度 w = v / R
+            angular_speed = speed / radius
+            
+            msg = Twist()
+            msg.linear.x = float(speed)
+            # 目標角度の符号で、左旋回か右旋回かを決定
+            msg.angular.z = float(angular_speed if target_value > 0 else -angular_speed)
+            self.get_logger().info(f'Arc driving: Radius {radius}m, Angle {target_value}deg (Duration: {duration:.2f}s)')
+        
         else:
             self.get_logger().error(f'Unknown drive type: {drive_type}')
             goal_handle.abort()
