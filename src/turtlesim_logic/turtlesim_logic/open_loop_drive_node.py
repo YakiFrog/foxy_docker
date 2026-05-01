@@ -113,7 +113,7 @@ class OpenLoopDriveNode(Node):
         start_time = self.get_clock().now()
         feedback_msg = OpenLoopDrive.Feedback()
         
-        rate = self.create_rate(20) # 20Hz (0.05秒に1回コマンドを送信)
+        rate = self.create_rate(100) # 100Hz (0.01秒に1回コマンドを送信)
         
         try:
             # 現在時刻と開始時刻の差(経過時間)が、計算した duration に達するまでループ

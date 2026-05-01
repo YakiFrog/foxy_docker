@@ -98,7 +98,7 @@ class ArcDriveNode(Node):
         result = ArcDrive.Result()
         feedback_msg = ArcDrive.Feedback()
         
-        rate = self.create_rate(20) # 20Hz
+        rate = self.create_rate(100) # 100Hz (0.01秒周期)
         
         try:
             while abs(accumulated_angle) < target_angle_rad:
