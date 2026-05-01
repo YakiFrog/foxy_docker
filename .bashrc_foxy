@@ -1,6 +1,6 @@
 # Foxy Test Environment Aliases
 
-export ROS_DOMAIN_ID=57
+export ROS_DOMAIN_ID=56
 export RCUTILS_COLORIZED_OUTPUT=1
 
 # Basic Aliases
