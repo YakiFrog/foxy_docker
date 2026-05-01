@@ -23,6 +23,7 @@ alias launch_all='ros2 launch turtlesim_logic turtlesim_logic.launch.py'
 alias rotate_90='ros2 action send_goal /rotate_degrees bt_msgs/action/RotateDegrees "{target_degrees: 90.0}" --feedback'
 alias move_2_2='ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: 2.0, y: 2.0}" --feedback'
 alias run_seq='bash /ros2_ws/scripts/test_sequence.sh'
+alias record='bash /ros2_ws/scripts/record_rosbag.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
-echo "Available aliases: build, src, turtle_start, rotate_start, move_start, rotate_90, move_2_2, run_seq"
+echo "Available aliases: build, src, turtle_start, rotate_start, move_start, launch_all, rotate_90, move_2_2, run_seq, record"
