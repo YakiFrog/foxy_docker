@@ -22,6 +22,7 @@ alias launch_all='ros2 launch turtlesim_logic turtlesim_logic.launch.py'
 # Test Action Goals
 alias rotate_90='ros2 action send_goal /rotate_degrees bt_msgs/action/RotateDegrees "{target_degrees: 90.0}" --feedback'
 alias move_2_2='ros2 action send_goal /move_to_target bt_msgs/action/MoveToTarget "{x: 2.0, y: 2.0}" --feedback'
+alias arc_r2_90='ros2 action send_goal /arc_drive bt_msgs/action/ArcDrive "{radius: 2.0, angle_degrees: 90.0, linear_speed: 1.0}" --feedback'
 
 # Automated Sequence Execution
 alias run_seq='bash /ros2_ws/scripts/test_sequence.sh'

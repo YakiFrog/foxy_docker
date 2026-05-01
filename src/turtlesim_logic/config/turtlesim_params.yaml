@@ -25,3 +25,12 @@ rotate_turtle_node:
     min_angular_speed: 0.2
     kp_angular: 2.0
     tolerance: 0.02
+
+arc_drive_node:
+  ros__parameters:
+    # トピック名
+    pose_topic: "/turtle1/pose"
+    cmd_vel_topic: "/turtle1/cmd_vel"
+
+    # 制御パラメータ
+    linear_speed: 1.0
