@@ -1,0 +1,10 @@
+# Goal
+string type           # "rotate" or "move"
+float32 target_value  # degrees for rotate, meters for move
+float32 speed         # angular_speed for rotate, linear_speed for move
+---
+# Result
+bool success
+---
+# Feedback
+float32 elapsed_time

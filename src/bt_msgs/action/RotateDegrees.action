@@ -1,9 +1,9 @@
-# Request: 回転させる角度 (度)
+# Goal
 float32 target_degrees
+float32 speed
 ---
-# Result: 最終的な成否
+# Result
 bool success
 ---
-# Feedback: 進捗 (現在の角度、単位は度)
-float32 current_yaw
-string status
+# Feedback
+float32 current_degrees

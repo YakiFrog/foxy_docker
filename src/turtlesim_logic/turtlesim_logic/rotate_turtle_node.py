@@ -57,16 +57,17 @@ class RotateTurtleNode(Node):
         target_offset_rad = math.radians(target_deg)
         target_yaw = self.normalize_angle(self.current_yaw + target_offset_rad)
         
-        # Get parameters
-        max_angular_speed = self.get_parameter('max_angular_speed').value
-        min_angular_speed = self.get_parameter('min_angular_speed').value
+        # 目標速度の取得 (指定がなければ YAML の max_angular_speed)
+        goal_speed = goal_handle.request.speed
+        max_angular_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_angular_speed').value
+        
         kp_angular = self.get_parameter('kp_angular').value
         tolerance = self.get_parameter('tolerance').value
         
         rate = self.create_rate(10)
         while rclpy.ok():
             # Refresh parameters
-            max_angular_speed = self.get_parameter('max_angular_speed').value
+            max_angular_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_angular_speed').value
             min_angular_speed = self.get_parameter('min_angular_speed').value
             kp_angular = self.get_parameter('kp_angular').value
             tolerance = self.get_parameter('tolerance').value

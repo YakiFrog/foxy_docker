@@ -34,3 +34,12 @@ arc_drive_node:
 
     # 制御パラメータ
     linear_speed: 1.0
+
+open_loop_drive_node:
+  ros__parameters:
+    # トピック名
+    cmd_vel_topic: "/turtle1/cmd_vel"
+
+    # 制御パラメータ
+    linear_speed: 1.0
+    angular_speed: 1.0

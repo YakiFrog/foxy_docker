@@ -32,5 +32,12 @@ def generate_launch_description():
             name='arc_drive_node',
             parameters=[config],
             output='screen'
+        ),
+        Node(
+            package='turtlesim_logic',
+            executable='open_loop_drive',
+            name='open_loop_drive_node',
+            parameters=[config],
+            output='screen'
         )
     ])

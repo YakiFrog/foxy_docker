@@ -65,10 +65,14 @@ class MoveToTargetNode(Node):
     def execute_callback(self, goal_handle):
         target_x = goal_handle.request.x
         target_y = goal_handle.request.y
-        self.get_logger().info(f'Goal received: Move to ({target_x}, {target_y})')
+        
+        # 目標速度の取得 (指定がなければ YAML の max_linear_speed)
+        goal_speed = goal_handle.request.speed
+        max_linear_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_linear_speed').value
+        
+        self.get_logger().info(f'Moving to ({target_x}, {target_y}) with max speed {max_linear_speed}')
 
         # Get parameters from YAML/Parameters
-        max_linear_speed = self.get_parameter('max_linear_speed').value
         min_linear_speed = self.get_parameter('min_linear_speed').value
         max_angular_speed = self.get_parameter('max_angular_speed').value
         min_angular_speed = self.get_parameter('min_angular_speed').value
@@ -79,7 +83,7 @@ class MoveToTargetNode(Node):
 
         while rclpy.ok():
             # Refresh parameters in loop for real-time tuning
-            max_linear_speed = self.get_parameter('max_linear_speed').value
+            max_linear_speed = goal_speed if goal_speed > 0 else self.get_parameter('max_linear_speed').value
             min_linear_speed = self.get_parameter('min_linear_speed').value
             max_angular_speed = self.get_parameter('max_angular_speed').value
             min_angular_speed = self.get_parameter('min_angular_speed').value
