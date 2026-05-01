@@ -1,59 +1,72 @@
-# Foxy Test Environment (ROS 2 Foxy / Turtlesim)
+# Turtlesim Navigation Logic (Foxy Test)
 
-このリポジトリは、ROS 2 Jazzy で開発された移動ロジックを ROS 2 Foxy 環境へ移植し、動作検証を行うためのテスト環境です。
+Turtlesim を使ったオープンループ（時間制御）およびクローズドループ（センサー制御）の統合制御システム。
 
-## 1. 準備 (Requirements)
+## 0. セットアップ手順
 
-- Docker / Docker Compose
-- X11 Server (Ubuntu 等の GUI 環境、または Windows/macOS での X サーバー設定)
-
-## 2. 環境の起動
-
-ホスト側の `~/.bashrc` に設定されたエイリアスを使用します。
-
+### コンテナの起動・ビルド
+ホストマシンのターミナルで実行してください。
 ```bash
-# ビルド・起動・コンテナへのログインを一括実行
-foxy_up
+docker compose build  # イメージのビルド (初回やDockerfile変更時)
+foxy_up               # docker compose up -d と同等
+foxy_shell            # コンテナ内に入る
 ```
 
-※ 初回実行時や `Dockerfile` を変更した後は自動的にビルドが走ります。
+### 環境の初期化
+コンテナ内に入ったら、まずエイリアスを読み込み、ワークスペースをビルドします。
+```bash
+source .bashrc_foxy          # エイリアスのロード
+build                        # (または colcon build --symlink-install)
+src                          # (または source install/setup.bash)
+```
 
-## 3. 開発ワークフロー (Inside Container)
+---
 
-コンテナ内では以下のエイリアスを使用して効率的に開発を行えます。
+## 1. ノード構成
+2つの独立したノードが起動します。
 
-### ビルドと反映
-- `build`: ワークスペースのビルド (`colcon build`)
-- `src`: ビルド後の環境反映 (`source install/setup.bash`)
+| アクション名 | 実行バイナリ | 制御方式 | 特徴 |
+| :--- | :--- | :--- | :--- |
+| `/open_loop_drive` | `open_loop_drive` | 時間ベース | オドメトリ不要。計算された秒数だけ指令を送る。 |
+| `/closed_loop_drive` | `closed_loop_drive` | センサーベース | Poseトピックを監視。P制御により高精度に停止・トレース。 |
 
-### サーバーの起動
-1.  **ターミナル1**: `turtle_start` (Turtlesim GUI 起動)
-2.  **ターミナル2**: `launch_all` (移動・回転用アクションサーバー起動)
+---
 
-### テスト実行・記録
-- `run_seq`: 正方形走行テスト
-- `run_8`: 8の字走行テスト
-- `record`: rosbag 記録 (cmd_vel, pose, tf を記録)
-- `move_2_2`: 特定座標 (2, 2) への移動テスト
+## 2. アクション定義 (`Drive.action`)
+すべての移動指示は共通の `bt_msgs/action/Drive` を使用します。
 
-## 4. 設定のカスタマイズ
+### Goal フィールド
+- `type`: 動作モードを指定 (`move`, `rotate`, `arc`, `move_to`)
+- `target_value`: 移動距離(m) または 回転角(deg)
+- `speed`: 指定速度（正の値）
+- `radius`: 円弧走行時の半径 (`arc`時のみ)
+- `x`, `y`: 目標の絶対座標 (`move_to`時のみ)
+- `p_control_mode`: P減速の挙動指定
+    - `0`: YAML のデフォルト設定に従う
+    - `1`: 強制的に P減速を有効にする (目標直前でゆっくり止まる)
+    - `2`: 強制的に P減速を無効にする (一定速度で突っ切る)
 
-### ROS_DOMAIN_ID
-`docker-compose.yml` の `ROS_DOMAIN_ID` を書き換えることで通信グループを変更できます。
-(現在は `.bashrc_foxy` 内の設定をコメントアウトし、compose 側が優先されるようになっています)
+---
 
-### 制御パラメータ
-`src/turtlesim_logic/config/turtlesim_params.yaml` を書き換えて `build` することで、ゲインや速度制限を調整できます。
+## 3. 主要パラメータ (`turtlesim_params.yaml`)
+`closed_loop_drive_node` 内の主要な調整項目です。
 
-## 5. 通信設定 (DDS)
+- **速度制限**: `max_linear_speed` / `min_linear_speed` 等
+- **許容誤差**: `dist_tolerance` (m) / `yaw_tolerance` (rad)
+- **P制御ゲイン**:
+    - `kp_linear`: 直進・座標移動時の減速強度
+    - `kp_angular`: 旋回・向き修正時の強度
+    - `kp_arc`: 円弧走行時の軌道(半径)修正の強度
+- **P減速デフォルト**:
+    - `default_use_p_move`, `default_use_p_rotate`, `default_use_p_arc`
 
-本環境では、異なる ROS バージョン間や Docker 越しの通信を安定させるため、以下の構成を採用しています。
+---
 
-- **RMW**: `rmw_fastrtps_cpp` (Fast-DDS)
-- **共有メモリ禁止**: `fastdds_noshm.xml` を適用。
-  - 同一ホスト内での ROS バージョン違いによる `Deserialization failed` や `bad_alloc` などのクラッシュを防ぎます。
+## 4. 実行コマンド (エイリアス)
+`.bashrc_foxy` に登録されている便利なショートカットです。
 
-## 6. ファイル構成
-- `Dockerfile`: Foxy ベースのビルド定義
-- `.bashrc_foxy`: コンテナ内の環境変数・エイリアス定義 (ホストから編集可能)
-- `scripts/`: テスト用自動実行スクリプト群
+- **基本操作**: `build` (ビルド), `src` (環境反映), `launch_all` (ノード起動)
+- **環境リセット**: `turtle_reset` (カメを中央に戻して画面をクリア)
+- **自動走行スクリプト**:
+    - `run_cl_square` / `run_ol_seq` : 角丸正方形走行 (CL/OL)
+    - `run_cl_8` / `run_ol_8` : スムーズな8の字走行 (CL/OL)

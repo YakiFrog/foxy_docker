@@ -19,8 +19,8 @@ alias ol_rotate_90='ros2 action send_goal /open_loop_drive bt_msgs/action/Drive 
 alias ol_move_2='ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: \"move\", target_value: 2.0, speed: 1.0}" --feedback'
 
 # Automated Sequence Execution
-alias run_ol_seq='bash /ros2_ws/scripts/test_ol_square.sh'
-alias run_cl_seq='bash /ros2_ws/scripts/test_cl_sequence.sh'
+alias run_ol_sq='bash /ros2_ws/scripts/test_ol_square.sh'
+alias run_cl_sq='bash /ros2_ws/scripts/test_cl_square.sh'
 alias run_ol_8='bash /ros2_ws/scripts/test_ol_figure8.sh'
 alias run_cl_8='bash /ros2_ws/scripts/test_cl_figure8.sh'
 alias record='bash /ros2_ws/scripts/record_rosbag.sh'
@@ -29,6 +29,6 @@ echo "--- Foxy Test Environment Loaded ---"
 echo "Basic Commands:"
 echo "  build, src, launch_all, turtle_start, turtle_reset"
 echo "Sequence Commands:"
-echo "  run_cl_seq / run_ol_seq : Square (CL/OL)"
-echo "  run_cl_8   / run_ol_8   : Figure-8 (CL/OL)"
+echo "  run_cl_sq / run_ol_sq : Square (CL/OL)"
+echo "  run_cl_8  / run_ol_8  : Figure-8 (CL/OL)"
 echo "!!! Run 'build' and 'src' after changes !!!"

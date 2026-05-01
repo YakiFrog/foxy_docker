@@ -6,6 +6,7 @@ float32 speed         # angular_speed for rotate, linear_speed for move/arc/move
 float32 radius        # only for "arc"
 float32 x             # only for "move_to"
 float32 y             # only for "move_to"
+int8 p_control_mode   # 0: Default(YAML), 1: Force ON, 2: Force OFF
 ---
 # Result
 bool success
