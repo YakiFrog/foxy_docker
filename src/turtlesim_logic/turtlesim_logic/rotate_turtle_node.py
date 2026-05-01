@@ -15,10 +15,24 @@ class RotateTurtleNode(Node):
         # Turtlesim uses /turtle1/pose and /turtle1/cmd_vel
         self.current_yaw = 0.0
         self.callback_group = ReentrantCallbackGroup()
+        
+        # Declare and get topic parameters
+        self.declare_parameter('pose_topic', '/turtle1/pose')
+        self.declare_parameter('cmd_vel_topic', '/turtle1/cmd_vel')
+        
+        pose_topic = self.get_parameter('pose_topic').value
+        cmd_vel_topic = self.get_parameter('cmd_vel_topic').value
+
         self.create_subscription(
-            Pose, '/turtle1/pose', self.pose_callback, 10,
+            Pose, pose_topic, self.pose_callback, 10,
             callback_group=self.callback_group)
-        self.cmd_vel_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, cmd_vel_topic, 10)
+        
+        # Declare control parameters
+        self.declare_parameter('max_angular_speed', 1.0)
+        self.declare_parameter('min_angular_speed', 0.2)
+        self.declare_parameter('kp_angular', 2.0)
+        self.declare_parameter('tolerance', 0.02)
         
         self._action_server = ActionServer(
             self, RotateDegrees, 'rotate_degrees',
@@ -43,12 +57,19 @@ class RotateTurtleNode(Node):
         target_offset_rad = math.radians(target_deg)
         target_yaw = self.normalize_angle(self.current_yaw + target_offset_rad)
         
-        # Simple P-control logic
-        kp = 2.0
-        tolerance = 0.02
+        # Get parameters
+        max_angular_speed = self.get_parameter('max_angular_speed').value
+        min_angular_speed = self.get_parameter('min_angular_speed').value
+        kp_angular = self.get_parameter('kp_angular').value
+        tolerance = self.get_parameter('tolerance').value
         
         rate = self.create_rate(10)
         while rclpy.ok():
+            # Refresh parameters
+            max_angular_speed = self.get_parameter('max_angular_speed').value
+            min_angular_speed = self.get_parameter('min_angular_speed').value
+            kp_angular = self.get_parameter('kp_angular').value
+            tolerance = self.get_parameter('tolerance').value
             yaw_error = self.normalize_angle(target_yaw - self.current_yaw)
             
             # Feedback
@@ -65,7 +86,11 @@ class RotateTurtleNode(Node):
                 return RotateDegrees.Result(success=False)
             
             msg = Twist()
-            msg.angular.z = kp * yaw_error
+            raw_w = kp_angular * yaw_error
+            w = max(-max_angular_speed, min(max_angular_speed, raw_w))
+            if abs(w) < min_angular_speed and abs(yaw_error) > 0.01:
+                w = min_angular_speed if w > 0 else -min_angular_speed
+            msg.angular.z = w
             self.cmd_vel_pub.publish(msg)
             
             # No await here, but MultiThreadedExecutor will handle pose_callback

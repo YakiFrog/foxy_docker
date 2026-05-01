@@ -1,0 +1,27 @@
+move_to_target_node:
+  ros__parameters:
+    # トピック名
+    pose_topic: "/turtle1/pose"
+    cmd_vel_topic: "/turtle1/cmd_vel"
+
+    # 制御パラメータ
+    max_linear_speed: 1.0
+    min_linear_speed: 0.2
+    max_angular_speed: 1.0
+    min_angular_speed: 0.2
+    kp_linear: 1.0
+    kp_angular: 4.0
+    dist_tolerance: 0.1
+    yaw_tolerance: 0.05
+
+rotate_turtle_node:
+  ros__parameters:
+    # トピック名
+    pose_topic: "/turtle1/pose"
+    cmd_vel_topic: "/turtle1/cmd_vel"
+
+    # 制御パラメータ
+    max_angular_speed: 1.0
+    min_angular_speed: 0.2
+    kp_angular: 2.0
+    tolerance: 0.02

@@ -20,12 +20,29 @@ class MoveToTargetNode(Node):
         self.current_y = 0.0
         self.current_yaw = 0.0
         
+        # Declare and get topic parameters
+        self.declare_parameter('pose_topic', '/turtle1/pose')
+        self.declare_parameter('cmd_vel_topic', '/turtle1/cmd_vel')
+        
+        pose_topic = self.get_parameter('pose_topic').value
+        cmd_vel_topic = self.get_parameter('cmd_vel_topic').value
+        
+        # Declare control parameters
+        self.declare_parameter('max_linear_speed', 1.0)
+        self.declare_parameter('min_linear_speed', 0.2)
+        self.declare_parameter('max_angular_speed', 1.0)
+        self.declare_parameter('min_angular_speed', 0.2)
+        self.declare_parameter('kp_linear', 1.0)
+        self.declare_parameter('kp_angular', 4.0)
+        self.declare_parameter('dist_tolerance', 0.1)
+        self.declare_parameter('yaw_tolerance', 0.05)
+        
         self.create_subscription(
-            Pose, '/turtle1/pose', self.pose_callback, 10,
+            Pose, pose_topic, self.pose_callback, 10,
             callback_group=self.callback_group)
         
         self.cmd_vel_pub = self.create_publisher(
-            Twist, '/turtle1/cmd_vel', 10)
+            Twist, cmd_vel_topic, 10)
         
         self._action_server = ActionServer(
             self, MoveToTarget, 'move_to_target',
@@ -50,12 +67,26 @@ class MoveToTargetNode(Node):
         target_y = goal_handle.request.y
         self.get_logger().info(f'Goal received: Move to ({target_x}, {target_y})')
 
-        kp_linear = 1.0
-        kp_angular = 4.0
-        dist_tolerance = 0.1
-        yaw_tolerance = 0.05
-        
+        # Get parameters from YAML/Parameters
+        max_linear_speed = self.get_parameter('max_linear_speed').value
+        min_linear_speed = self.get_parameter('min_linear_speed').value
+        max_angular_speed = self.get_parameter('max_angular_speed').value
+        min_angular_speed = self.get_parameter('min_angular_speed').value
+        kp_linear = self.get_parameter('kp_linear').value
+        kp_angular = self.get_parameter('kp_angular').value
+        dist_tolerance = self.get_parameter('dist_tolerance').value
+        yaw_tolerance = self.get_parameter('yaw_tolerance').value
+
         while rclpy.ok():
+            # Refresh parameters in loop for real-time tuning
+            max_linear_speed = self.get_parameter('max_linear_speed').value
+            min_linear_speed = self.get_parameter('min_linear_speed').value
+            max_angular_speed = self.get_parameter('max_angular_speed').value
+            min_angular_speed = self.get_parameter('min_angular_speed').value
+            kp_linear = self.get_parameter('kp_linear').value
+            kp_angular = self.get_parameter('kp_angular').value
+            dist_tolerance = self.get_parameter('dist_tolerance').value
+            yaw_tolerance = self.get_parameter('yaw_tolerance').value
             # Calculate distance and angle to target
             dx = target_x - self.current_x
             dy = target_y - self.current_y
@@ -83,12 +114,27 @@ class MoveToTargetNode(Node):
             msg = Twist()
             # If yaw error is large, rotate first (like Jazzy version)
             if abs(yaw_error) > 0.2:
-                msg.angular.z = kp_angular * yaw_error
+                raw_w = kp_angular * yaw_error
+                # Clamp Max
+                w = max(-max_angular_speed, min(max_angular_speed, raw_w))
+                # Apply Min
+                if abs(w) < min_angular_speed:
+                    w = min_angular_speed if w > 0 else -min_angular_speed
+                msg.angular.z = w
                 msg.linear.x = 0.0
             else:
                 # Move forward while adjusting angle
-                msg.linear.x = min(2.0, kp_linear * dist)
-                msg.angular.z = kp_angular * yaw_error
+                raw_v = kp_linear * dist
+                v = max(0.0, min(max_linear_speed, raw_v))
+                if v > 0 and v < min_linear_speed:
+                    v = min_linear_speed
+                msg.linear.x = v
+                
+                raw_w = kp_angular * yaw_error
+                w = max(-max_angular_speed, min(max_angular_speed, raw_w))
+                if abs(w) < min_angular_speed and abs(yaw_error) > 0.01:
+                    w = min_angular_speed if w > 0 else -min_angular_speed
+                msg.angular.z = w
                 
             self.cmd_vel_pub.publish(msg)
             time.sleep(0.1)
