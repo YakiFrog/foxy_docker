@@ -1,36 +1,45 @@
 #!/bin/bash
-# test_ol_figure8.sh - Open Loop Smooth Figure-8 (Straight + Arc)
+# test_ol_figure8.sh - Open Loop Figure-8 with Variables
 
-echo "=== Open Loop Smooth Figure-8 Start ==="
+# --- 設定値 ---
+SCALE=1.0      # 基本単位
+RADIUS=0.5     # 円弧の半径
+SPEED=1.0      # 走行速度
+# --------------
 
-# Loop 1: Left Rounded Square
+echo "=== Open Loop Figure-8 Start (Scale: $SCALE, Radius: $RADIUS) ==="
+
+echo "Starting Straight $RADIUS m"
+ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: $RADIUS, speed: $SPEED}"
+
 echo "--- Starting Left Loop ---"
 for i in {1..3}
 do
-    echo "[Left $i/3] Step 1: Straight 1m"
-    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 1.0, speed: 1.0}"
+    echo "[Left $i/3] Step 1: Moving Straight ($SCALE m)"
+    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: $SCALE, speed: $SPEED}"
     
-    echo "[Left $i/3] Step 2: Left Arc (R=1.0m, 90deg)"
-    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'arc', target_value: 90.0, speed: 1.0, radius: 1.0}"
+    echo "[Left $i/3] Step 2: Left Arc (R=$RADIUS)"
+    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'arc', target_value: 90.0, speed: $SPEED, radius: $RADIUS}"
 done
 
-# 直進
-echo "Straight 1m + 1m"
-ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 2.0, speed: 1.0}"
+# つなぎの直線距離: RADIUS * 2 + SCALE
+CONN_DIST=$(awk "BEGIN {print $RADIUS * 2 + $SCALE}")
+echo "Connecting Straight $CONN_DIST m"
+ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: $CONN_DIST, speed: $SPEED}"
 
-# Loop 2: Right Rounded Square
 echo "--- Starting Right Loop ---"
 for i in {1..3}
 do
-    echo "[Right $i/3] Step 1: Straight 1m"
-    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 1.0, speed: 1.0}"
+    echo "[Right $i/3] Step 1: Moving Straight ($SCALE m)"
+    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: $SCALE, speed: $SPEED}"
     
-    echo "[Right $i/3] Step 2: Right Arc (R=1.0m, -90deg)"
-    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'arc', target_value: -90.0, speed: 1.0, radius: 1.0}"
+    echo "[Right $i/3] Step 2: Right Arc (R=$RADIUS)"
+    ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'arc', target_value: -90.0, speed: $SPEED, radius: $RADIUS}"
 done
 
-# 直進
-echo "Straight 1m + 1m"
-ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: 2.0, speed: 1.0}"
+# 最後の直線距離: RADIUS + SCALE
+FINAL_DIST=$(awk "BEGIN {print $RADIUS + $SCALE}")
+echo "Final Straight $FINAL_DIST m"
+ros2 action send_goal /open_loop_drive bt_msgs/action/Drive "{type: 'move', target_value: $FINAL_DIST, speed: $SPEED}"
 
-echo "=== Open Loop Smooth Figure-8 Complete! ==="
+echo "=== Open Loop Figure-8 Complete! ==="
