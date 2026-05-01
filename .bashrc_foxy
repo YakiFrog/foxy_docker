@@ -6,10 +6,7 @@ alias foxy_shell='docker compose exec -it foxy_test bash'
 
 # Start turtlesim
 alias turtle_start='ros2 run turtlesim turtlesim_node'
-
-# Run nodes (Deprecated: use launch_all)
-alias rotate_start='ros2 run turtlesim_logic rotate_turtle'
-alias move_start='ros2 run turtlesim_logic move_to_target'
+alias turtle_reset='ros2 service call /reset std_srvs/srv/Empty {}'
 
 # Unified Launch
 alias launch_all='ros2 launch turtlesim_logic turtlesim_logic.launch.py'
@@ -29,9 +26,9 @@ alias run_cl_8='bash /ros2_ws/scripts/test_cl_figure8.sh'
 alias record='bash /ros2_ws/scripts/record_rosbag.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
+echo "Basic Commands:"
+echo "  build, src, launch_all, turtle_start, turtle_reset"
 echo "Sequence Commands:"
-echo "  run_cl_seq : Run closed-loop square (Coordinates)"
-echo "  run_ol_seq : Run open-loop square (Time)"
-echo "  run_cl_8   : Run closed-loop figure-8 (P-control)"
-echo "  run_ol_8   : Run open-loop figure-8 (Time)"
-echo "!!! After changes, run 'build' and 'src' !!!"
+echo "  run_cl_seq / run_ol_seq : Square (CL/OL)"
+echo "  run_cl_8   / run_ol_8   : Figure-8 (CL/OL)"
+echo "!!! Run 'build' and 'src' after changes !!!"

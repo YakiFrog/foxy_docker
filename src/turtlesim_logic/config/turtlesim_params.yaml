@@ -24,7 +24,7 @@ closed_loop_drive_node:
     # 制御ゲイン (P制御)
     kp_linear: 2.0
     kp_angular: 4.0
-    kp_arc: 2.0
+    kp_arc: 1.0
 
 # オープンループ（時間制御）ノードの設定
 open_loop_drive_node:
