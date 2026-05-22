@@ -8,9 +8,8 @@ services:
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-40}
-      # - ROS_DOMAIN_ID=88
-      # - FASTRTPS_DEFAULT_PROFILES_FILE=/ros2_ws/fastdds_noshm.xml
+      - ROS_DOMAIN_ID=88
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/ros2_ws/fastdds_noshm.xml
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - .:/ros2_ws
@@ -18,3 +17,5 @@ services:
     stdin_open: true
     tty: true
     privileged: true
+    ipc: host
+
