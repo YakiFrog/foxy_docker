@@ -7,15 +7,21 @@ import math
 import time
 
 from geometry_msgs.msg import Twist
-from turtlesim.msg import Pose
+from nav_msgs.msg import Odometry
 from bt_msgs.action import Drive
+
+class Pose2D:
+    def __init__(self, x=0.0, y=0.0, theta=0.0):
+        self.x = x
+        self.y = y
+        self.theta = theta
 
 class ClosedLoopDriveNode(Node):
     def __init__(self):
         super().__init__('closed_loop_drive_node')
         
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
-        self.declare_parameter('pose_topic', '/turtle1/pose')
+        self.declare_parameter('pose_topic', '/odom')
         self.declare_parameter('linear_speed', 1.0)
         self.declare_parameter('angular_speed', 1.0)
         self.declare_parameter('max_linear_speed', 2.0)
@@ -35,7 +41,7 @@ class ClosedLoopDriveNode(Node):
         self.pose_topic = self.get_parameter('pose_topic').value
         
         self.current_pose = None
-        self.create_subscription(Pose, self.pose_topic, self.pose_callback, 10)
+        self.create_subscription(Odometry, self.pose_topic, self.pose_callback, 10)
         self.publisher_ = self.create_publisher(Twist, self.cmd_vel_topic, 10)
         
         self._action_server = ActionServer(
@@ -46,7 +52,15 @@ class ClosedLoopDriveNode(Node):
         self.get_logger().info('High-Precision ClosedLoopDrive Node Started')
 
     def pose_callback(self, msg):
-        self.current_pose = msg
+        q = msg.pose.pose.orientation
+        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        theta = math.atan2(siny_cosp, cosy_cosp)
+        self.current_pose = Pose2D(
+            x=msg.pose.pose.position.x,
+            y=msg.pose.pose.position.y,
+            theta=theta
+        )
 
     def clamp(self, value, min_val, max_val):
         if abs(value) < min_val:
