@@ -14,7 +14,7 @@ class ClosedLoopDriveNode(Node):
     def __init__(self):
         super().__init__('closed_loop_drive_node')
         
-        self.declare_parameter('cmd_vel_topic', '/turtle1/cmd_vel')
+        self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('pose_topic', '/turtle1/pose')
         self.declare_parameter('linear_speed', 1.0)
         self.declare_parameter('angular_speed', 1.0)
