@@ -4,8 +4,8 @@
 closed_loop_drive_node:
   ros__parameters:
     # トピック名
-    pose_topic: "/turtle1/pose"
-    cmd_vel_topic: "/turtle1/cmd_vel"
+    pose_topic: "/odom"
+    cmd_vel_topic: "/cmd_vel"
 
     # ゴール判定（許容誤差）
     dist_tolerance: 0.05
@@ -30,7 +30,7 @@ closed_loop_drive_node:
 # オープンループ（時間制御）ノードの設定
 open_loop_drive_node:
   ros__parameters:
-    cmd_vel_topic: "/turtle1/cmd_vel"
+    cmd_vel_topic: "/cmd_vel"
     linear_speed: 1.0
     angular_speed: 1.0
 
@@ -39,7 +39,7 @@ closed_loop_shape_node:
   ros__parameters:
     # トピック名
     pose_topic: "/odom"
-    cmd_vel_topic: "/turtle1/cmd_vel"
+    cmd_vel_topic: "/cmd_vel"
 
     # ゴール判定（許容誤差）
     dist_tolerance: 0.05
@@ -64,7 +64,7 @@ closed_loop_shape_node:
 # オープンループ（時間制御）シェイプノードの設定
 open_loop_shape_node:
   ros__parameters:
-    cmd_vel_topic: "/turtle1/cmd_vel"
+    cmd_vel_topic: "/cmd_vel"
     linear_speed: 1.0
     angular_speed: 1.0
 
