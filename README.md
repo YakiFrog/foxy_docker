@@ -27,6 +27,27 @@ src                          # (または source install/setup.bash)
 rm -rf build/ install/ log/ && build && src
 ```
 
+### オフライン環境への導入手順
+インターネット接続がないPCに本環境を移行する場合の手順です。
+
+#### 1. オンライン環境での準備（イメージの保存）
+本PCで以下のコマンドを実行し、ビルド済みのDockerイメージを `tar` ファイルとしてエクスポートします。
+```bash
+docker save -o foxy_tester_image.tar foxy_test-foxy_tester:latest
+```
+出力された `foxy_tester_image.tar` と、本フォルダ一式をUSBメモリ等にコピーします。
+
+#### 2. オフライン環境での導入
+オフラインPCにUSBメモリからフォルダを配置し、`tar` ファイルがあるディレクトリで以下を実行してイメージをインポートします。
+```bash
+docker load -i foxy_tester_image.tar
+```
+インポート完了後、コンテナを起動します（`--build` は不要です）。
+```bash
+docker compose up -d
+docker exec -it foxy_bt_tester bash
+```
+
 ---
 
 ## 1. ノード構成
