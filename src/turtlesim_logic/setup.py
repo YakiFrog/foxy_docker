@@ -24,7 +24,9 @@ setup(
     entry_points={
         'console_scripts': [
             'open_loop_drive = turtlesim_logic.open_loop_drive_node:main',
-            'closed_loop_drive = turtlesim_logic.closed_loop_drive_node:main'
+            'closed_loop_drive = turtlesim_logic.closed_loop_drive_node:main',
+            'open_loop_shape = turtlesim_logic.open_loop_shape_node:main',
+            'closed_loop_shape = turtlesim_logic.closed_loop_shape_node:main'
         ],
     },
 )

@@ -25,5 +25,19 @@ def generate_launch_description():
             name='closed_loop_drive_node',
             parameters=[config],
             output='screen'
+        ),
+        Node(
+            package='turtlesim_logic',
+            executable='open_loop_shape',
+            name='open_loop_shape_node',
+            parameters=[config],
+            output='screen'
+        ),
+        Node(
+            package='turtlesim_logic',
+            executable='closed_loop_shape',
+            name='closed_loop_shape_node',
+            parameters=[config],
+            output='screen'
         )
     ])

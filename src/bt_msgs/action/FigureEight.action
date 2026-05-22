@@ -1,0 +1,12 @@
+# FigureEight.action
+# Goal
+float32 scale
+float32 radius
+float32 speed
+int8 p_control_mode   # 0: Default(YAML), 1: Force ON, 2: Force OFF
+---
+# Result
+bool success
+---
+# Feedback
+float32 progress

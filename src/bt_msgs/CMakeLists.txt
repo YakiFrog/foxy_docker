@@ -7,6 +7,8 @@ find_package(action_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/Drive.action"
+  "action/Square.action"
+  "action/FigureEight.action"
   DEPENDENCIES action_msgs
 )
 
