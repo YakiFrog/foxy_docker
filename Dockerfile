@@ -4,6 +4,7 @@ FROM ros:foxy-ros-base
 RUN apt-get update && apt-get install -y \
     ros-foxy-turtlesim \
     ros-foxy-action-msgs \
+    ros-foxy-rmw-cyclonedds-cpp \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 

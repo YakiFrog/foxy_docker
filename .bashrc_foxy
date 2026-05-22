@@ -5,6 +5,9 @@ alias tt='source ~/.bashrc'
 # alias foxy_up='docker compose up -d'
 # alias foxy_shell='docker compose exec -it foxy_test bash'
 
+# export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+unset ROS_LOCALHOST_ONLY
+
 # Start turtlesim
 alias turtle_start='ros2 run turtlesim turtlesim_node --ros-args --remap turtle1/cmd_vel:=cmd_vel --remap turtle1/pose:=odom'
 alias turtle_reset='ros2 service call /reset std_srvs/srv/Empty {}'
