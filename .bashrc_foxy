@@ -24,6 +24,10 @@ alias run_ol_sq='bash /ros2_ws/scripts/test_ol_square.sh'
 alias run_cl_sq='bash /ros2_ws/scripts/test_cl_square.sh'
 alias run_ol_8='bash /ros2_ws/scripts/test_ol_figure8.sh'
 alias run_cl_8='bash /ros2_ws/scripts/test_cl_figure8.sh'
+alias run_ol_sq_uni='bash /ros2_ws/scripts/test_ol_square_unified.sh'
+alias run_cl_sq_uni='bash /ros2_ws/scripts/test_cl_square_unified.sh'
+alias run_ol_8_uni='bash /ros2_ws/scripts/test_ol_figure8_unified.sh'
+alias run_cl_8_uni='bash /ros2_ws/scripts/test_cl_figure8_unified.sh'
 alias record='bash /ros2_ws/scripts/record_rosbag.sh'
 
 echo "--- Foxy Test Environment Loaded ---"
@@ -32,4 +36,6 @@ echo "  build, src, launch_all, turtle_start, turtle_reset"
 echo "Sequence Commands:"
 echo "  run_cl_sq / run_ol_sq : Square (CL/OL)"
 echo "  run_cl_8  / run_ol_8  : Figure-8 (CL/OL)"
+echo "  run_cl_sq_uni / run_ol_sq_uni : Unified Square (CL/OL)"
+echo "  run_cl_8_uni  / run_ol_8_uni  : Unified Figure-8 (CL/OL)"
 echo "!!! Run 'build' and 'src' after changes !!!"
