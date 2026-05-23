@@ -20,3 +20,5 @@ echo "Press Ctrl+C to stop recording."
 
 # 記録開始
 ros2 bag record -o "$BAG_DIR/$BAG_NAME" /turtle1/cmd_vel /turtle1/pose /tf /tf_static
+
+# ros2 bag record -o "" /tf /tf_static /

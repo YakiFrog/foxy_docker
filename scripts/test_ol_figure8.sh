@@ -2,8 +2,8 @@
 # test_ol_figure8.sh - Open Loop Figure-8 with Variables
 
 # --- 設定値 ---
-SCALE=1.0      # 基本単位
-RADIUS=0.5     # 円弧の半径
+SCALE=5.0      # 基本単位
+RADIUS=2.5     # 円弧の半径
 SPEED=1.0      # 走行速度
 # --------------
 

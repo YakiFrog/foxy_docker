@@ -2,8 +2,8 @@
 # test_ol_square.sh - Open Loop Rounded Square with Variables
 
 # --- 設定値 ---
-SIDE=1.0       # 一辺の長さ
-RADIUS=0.5     # 角の半径
+SIDE=5.0       # 一辺の長さ
+RADIUS=2.5     # 角の半径
 SPEED=1.0      # 走行速度
 # --------------
 

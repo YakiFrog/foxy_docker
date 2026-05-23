@@ -4,8 +4,8 @@
 closed_loop_drive_node:
   ros__parameters:
     # トピック名
-    pose_topic: "/odom"
-    cmd_vel_topic: "/cmd_vel"
+    pose_topic: "/aiformula_sensing/gyro_odometry_publisher/odom"
+    cmd_vel_topic: "/aiformula_control/twist_mux/cmd_vel"
 
     # ゴール判定（許容誤差）
     dist_tolerance: 0.05
@@ -30,7 +30,7 @@ closed_loop_drive_node:
 # オープンループ（時間制御）ノードの設定
 open_loop_drive_node:
   ros__parameters:
-    cmd_vel_topic: "/cmd_vel"
+    cmd_vel_topic: "/aiformula_control/twist_mux/cmd_vel"
     linear_speed: 1.0
     angular_speed: 1.0
 
@@ -38,8 +38,8 @@ open_loop_drive_node:
 closed_loop_shape_node:
   ros__parameters:
     # トピック名
-    pose_topic: "/odom"
-    cmd_vel_topic: "/cmd_vel"
+    pose_topic: "/aiformula_sensing/gyro_odometry_publisher/odom"
+    cmd_vel_topic: "/aiformula_control/twist_mux/cmd_vel"
 
     # ゴール判定（許容誤差）
     dist_tolerance: 0.05
@@ -64,7 +64,7 @@ closed_loop_shape_node:
 # オープンループ（時間制御）シェイプノードの設定
 open_loop_shape_node:
   ros__parameters:
-    cmd_vel_topic: "/cmd_vel"
+    cmd_vel_topic: "/aiformula_control/twist_mux/cmd_vel"
     linear_speed: 1.0
     angular_speed: 1.0
 
